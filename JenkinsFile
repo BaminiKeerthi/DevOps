@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    environment {
+        // Set any environment variables here if needed
+        APP_NAME = 'MyApp'
+    }
+
+    tools {
+        maven 'Maven 3.8.1' // Make sure it's configured in Jenkins
+        jdk 'Java 11'       // Also configure this JDK in Jenkins
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/your-username/your-repo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Static Code Analysis') {
+            steps {
+                sh 'mvn checkstyle:check' // or sonar scanner
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo "Deploying ${APP_NAME} to production..."
+                // Sample deployment step
+                sh 'scp target/*.jar user@server:/path/to/deploy/'
+                // You can also call a deploy script or Docker commands
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build and deployment successful!'
+        }
+        failure {
+            echo '❌ Build failed!'
+        }
+    }
+}
